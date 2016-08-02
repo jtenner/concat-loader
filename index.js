@@ -9,17 +9,18 @@ module.exports = function(entry) {
   var opts = qs.parse(this.query.slice(1));
 
   if (!opts.glob) {
-    cb(new Error('No glob specified for resource ' + this.resourcePath + '.'));
+    return cb(new Error('No glob specified for resource ' + this.resourcePath + '.'));
   }
+
 
   glob(opts.glob, {}, function(err, matches) {
     if (!err) {
       async.map(matches, fs.readFile, function(rfErr, results) {
         if (!rfErr) {
-          var source = [entry].concat(results).join('\n');
-          cb(null, source);
+          var source = (opts.prepend ? results.concat([entry]) : [entry].concat(results)).join('\n');
+          return cb(null, source);
         } else {
-          cb(rfErr);
+          return cb(rfErr);
         }
       });
     } else {
